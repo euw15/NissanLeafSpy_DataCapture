@@ -1,7 +1,10 @@
 import csv
 from os import listdir
 from os.path import isfile, join
+from math import sin, cos, sqrt, atan2, radians
+import geopy.distance
 
+#Indices de los datos que estan en los archivos CSV.
 c_TimeStampIndex    = 0
 c_LatPointsIndex    = 1
 c_LongPointsIndex   = 2
@@ -16,6 +19,10 @@ c_ACPowerIndex      = 139
 c_PlugPointsIndex   = 141
 c_BMSIndex   = 149
 
+# approximate radius of earth in km
+R = 6373.0
+
+#Clase que tiene la informacion de un ride
 class RideData:
     timeStamp = []
     gpsPoints = []
@@ -26,8 +33,9 @@ class RideData:
     avgElevation = 0
     avgSpeed = 0
     difSoc = 0
-  
-    def __init__(self, timeStamp, gpsPoints, elevationPoints, SOCPoints, speedPoints, regenWhPoints, avgElevation, avgSpeed, difSoc):
+    distance = 0
+
+    def __init__(self, timeStamp, gpsPoints, elevationPoints, SOCPoints, speedPoints, regenWhPoints, avgElevation, avgSpeed, difSoc, distance):
         self.timeStamp          = timeStamp
         self.gpsPoints          = gpsPoints
         self.elevationPoints    = elevationPoints
@@ -37,11 +45,19 @@ class RideData:
         self.avgElevation       = avgElevation
         self.avgSpeed           = avgSpeed
         self.difSoc             = difSoc
+        self.distance           = distance
 
+    def PrintAVGData(self):
+        print("AVG Elevation: " + str(self.avgElevation) )
+        print("AVG Speed: " + str(self.avgSpeed))
+        print("DIF SOC: " + str(self.difSoc))
+        print("Distance: "+str(self.distance))
+        
     def PrintAllData(self):
         print("AVG Elevation: " + str(self.avgElevation) )
         print("AVG Speed: " + str(self.avgSpeed))
         print("DIF SOC: " + str(self.difSoc))
+        print("Distance: "+str(self.distance))
         print("---Time---")
         print(self.timeStamp);
         print("---GPS---")
@@ -55,40 +71,100 @@ class RideData:
         print("---Regen---")
         print(self.regenWhPoints);
 
+#General Method that takes a file with full path and creates a RideData Object with the CSV information
+def GetDataFromFile(file):
+    with open(file, 'r') as cvs_file:
+        csv_reader = csv.reader(cvs_file)
+
+        timeStamp = []
+        gpsPoints = []
+        elevationPoints = []
+        SOCPoints = []
+        speedPoints = []
+        regenWhPoints = []
+        
+        for line in csv_reader:
+            timeStamp.append(line[c_TimeStampIndex])
+            gpsPoints.append([line[c_LatPointsIndex],line[c_LongPointsIndex]])
+            elevationPoints.append(line[c_ElevPointsIndex])
+            SOCPoints.append(line[c_SOCPointsIndex])
+            speedPoints.append(line[c_SpeedPointsIndex])
+            regenWhPoints.append(line[c_RegenPointsIndex])
+
+        #Elimina el primer elemento de la lista ya que no son datos, si no los tags
+        timeStamp.pop(0)
+        gpsPoints.pop(0)
+        elevationPoints.pop(0)
+        SOCPoints.pop(0)
+        speedPoints.pop(0)
+        regenWhPoints.pop(0)
+
+        for gpsPoint in gpsPoints:
+            gpsPoint[0] = convertGPSToDecimal(gpsPoint[0])
+            gpsPoint[1] = convertGPSToDecimal(gpsPoint[1])
+            
+        distance = CalculateRideDistance(gpsPoints);
+        rideData = RideData(timeStamp,gpsPoints,elevationPoints,SOCPoints,speedPoints,regenWhPoints, 0, 0, 0,distance)
+        return rideData
+
+#9 54.34805
+#-84 6.17203
+def convertGPSToDecimal(coordinate):
+    if(coordinate == ''):
+        return -1;
+    # split coordinate in 3 components and cast them to numbers
+    degComponent = coordinate.split(' ')
+    degrees = int(degComponent[0])
+    multiplier = 1
+    if(degrees < 0):
+        degrees = abs(degrees)
+        multiplier = -1;
+    minAndSecComp = degComponent[1].split('.')
+    components = coordinate
+    minutes = int(minAndSecComp[0])
+    seconds = int(minAndSecComp[1])
+
+    # compute decimal coordinate with max 5 decimals
+    calc = degrees + (minutes / 60) + (seconds / 3600)
+    decimal_coordinate = float("{0:.5f}".format(multiplier*calc))
+
+    return decimal_coordinate
+
+
+def CalculateRideDistance(gpsPoints):
+    distance = 0;
+    cmpGPSPoint = gpsPoints[0]
+    for gpsPoint in gpsPoints:
+        print(distance)
+        distance += DistanceBetweenTwoGPSPoints(cmpGPSPoint,gpsPoint)
+        cmpGPSPoint = gpsPoint
+
+    return distance
+
+def DistanceBetweenTwoGPSPoints(beginPoint, endPoint):
+    coords_1 = (beginPoint[0], beginPoint[1])
+    coords_2 = (endPoint[0], endPoint[1])
+
+    distance = geopy.distance.vincenty(coords_1, coords_2).km
+    return distance
+
+    
+#Lista con todos los rides de todos los archivos 
 allRidesData = []
 
-mypath = 'C:\\Users\\umanaedw\\Downloads\\Log Files\\'
+#Ruta donde estan los archivos
+mypath = 'C:\\Users\\umanaedw\\Downloads\\Test\\'
 
-allFiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+#Lista con el nombre de todos los archivos
+allFilesList = [f for f in listdir(mypath) if isfile(join(mypath, f))]
 
-with open('C:\\Users\\umanaedw\\Downloads\\Log Files\\Log_DC421447_170601_FC8E8.csv', 'r') as cvs_file:
-    csv_reader = csv.reader(cvs_file)
+#Agrega todos los rides a una lista
+for rideFile in allFilesList:
+    allRidesData.append(GetDataFromFile(mypath+rideFile))
 
-    timeStamp = []
-    gpsPoints = []
-    elevationPoints = []
-    SOCPoints = []
-    speedPoints = []
-    regenWhPoints = []
-    
-    for line in csv_reader:
-        timeStamp.append(line[c_TimeStampIndex])
-        gpsPoints.append([line[c_LatPointsIndex],line[c_LongPointsIndex]])
-        elevationPoints.append(line[c_ElevPointsIndex])
-        SOCPoints.append(line[c_SOCPointsIndex])
-        speedPoints.append(line[c_SpeedPointsIndex])
-        regenWhPoints.append(line[c_RegenPointsIndex])
+#Imprime todas las listas
+for ride in allRidesData:
+    ride.PrintAllData()
+   
 
-    timeStamp.pop(0)
-    gpsPoints.pop(0)
-    elevationPoints.pop(0)
-    SOCPoints.pop(0)
-    speedPoints.pop(0)
-    regenWhPoints.pop(0)
-
-    rideData = RideData(timeStamp,gpsPoints,elevationPoints,SOCPoints,speedPoints,regenWhPoints, 1231, 23, 26.875)
-    allRidesData.append(rideData)
-
-    for ride in allRidesData:
-        ride.PrintAllData()
  
