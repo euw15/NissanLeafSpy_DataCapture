@@ -1,4 +1,5 @@
 from math import sin, cos, sqrt, atan2, radians
+from datetime import datetime
 import geopy.distance
 
 #Indices de los datos que estan en los archivos CSV.
@@ -7,6 +8,7 @@ c_LatPointsIndex    = 1
 c_LongPointsIndex   = 2
 c_ElevPointsIndex   = 3
 c_SpeedPointsIndex  = 4
+c_GIDPointsIndex    = 5
 c_SOCPointsIndex    = 6
 c_TempPointsIndex   = 130
 c_SOHPointsIndex    = 131
@@ -15,6 +17,7 @@ c_MotorPowerPoints  = 135
 c_ACPowerIndex      = 139
 c_PlugPointsIndex   = 141
 c_BMSIndex          = 149
+
 
 # approximate radius of earth in km
 R = 6373.0
@@ -63,6 +66,12 @@ def CalculateSOCDif(SOCPoints):
     dif = float(cmpSOCPoint) - float(socPoint)
     return dif/10000
 
+def CalculateGIDSDif(SOCPoints):
+    cmpSOCPoint = SOCPoints[0]
+    socPoint    = SOCPoints[-1]
+    dif = float(cmpSOCPoint) - float(socPoint)
+    return dif
+
 def CalculateElevation(elevationPoints):
     elevation = 0
     cmpPoint = elevationPoints[0]
@@ -80,3 +89,11 @@ def CalculateDescent(elevationPoints):
             elevation += float(cmpPoint) - float(elevationPoint)
         cmpPoint =  elevationPoint
     return elevation
+
+def CalculateDuration(timeStampList,s_format):
+    s_StarTime      = timeStampList[0]
+    s_EndTime       = timeStampList[-1]
+    t_startTime     = datetime.strptime(s_StarTime, s_format)
+    t_EndTime       = datetime.strptime(s_EndTime, s_format)
+    return t_EndTime - t_startTime
+    

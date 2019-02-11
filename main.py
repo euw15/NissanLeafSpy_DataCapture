@@ -21,6 +21,7 @@ for rideFile in l_allFilesList:
 #Impreme la informacion obtenida
 for ride in l_allRidesData:
     ride.PrintAVGData()
+    print('------------------')
    
 
  
