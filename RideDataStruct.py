@@ -17,9 +17,15 @@ class RideData:
     distance        = 0
     duration        = 0
     filePath        = ''
+    eledistance     = 0
+    descdistance    = 0
+    planedistance   = 0
+    delevation      = 0
+    ##cmpPoint        = 0
+   
     
     def __init__(self, timeStamp, gpsPoints, elevationPoints, SOCPoints, GIDPoints, speedPoints, regenWhPoints,
-                 avgElevation, avgDescent, avgSpeed, difSoc, difGID, distance, duration, filePath, soh):
+                 avgElevation, avgDescent, avgSpeed, difSoc, difGID, distance, duration, filePath, soh, elevdistance, descdistance, planedistance):
         self.timeStamp          = timeStamp
         self.gpsPoints          = gpsPoints
         self.elevationPoints    = elevationPoints
@@ -36,6 +42,11 @@ class RideData:
         self.duration           = duration
         self.filePath           = filePath
         self.soh                = soh
+        self.eledistance        = elevdistance
+        self.descdistance       = descdistance
+        self.planedistance      = planedistance
+        ##self.cmpPoint           = cmpPoint
+       
         
     def PrintAVGData(self):
         print("Archivo: " + self.filePath.split('\\')[-1])
@@ -49,19 +60,11 @@ class RideData:
         print("Distancía: " + str(self.distance) + "km")
         print("Duración: " + str(self.duration))
         print("SOH:  " + str(self.soh))
+        print("Distancia en elevacion: " + str(self.eledistance) + " km")
+        print("Distancia en descenso: " + str(self.descdistance) + " km")
+        print("Distancia en plano:"  + str(self.planedistance)  +  "km" )
+        ##print( str(elevationPoints))
+       
         
-        
-    def PrintAllData(self):
-        self.PrintAVGData()
-        print("---Time---")
-        print(self.timeStamp);
-        print("---GPS---")
-        print(self.gpsPoints);
-        print("---Elevation---")
-        print(self.elevationPoints);
-        print("---SOC---")
-        print(self.SOCPoints);
-        print("---Speed---")
-        print(self.speedPoints);
-        print("---Regen---")
-        print(self.regenWhPoints);
+    def PrintCSV(self):
+        print(self.filePath.split('\\')[-1]+","+str(float(self.SOCPoints[0])/10000)+","+str(float(self.SOCPoints[-1])/10000)+","+str(self.difSoc)+","+str(self.difGID*80)+","+str(self.distance)+","+str(self.duration))

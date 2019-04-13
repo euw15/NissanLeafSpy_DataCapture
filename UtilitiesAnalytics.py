@@ -44,13 +44,13 @@ def convertGPSToDecimal(coordinate):
 
 def CalculateRideDistance(gpsPoints):
     distance = 0
-    
     cmpGPSPoint = gpsPoints[0]
     for gpsPoint in gpsPoints:
         distance += DistanceBetweenTwoGPSPoints(cmpGPSPoint,gpsPoint)
         cmpGPSPoint = gpsPoint
 
     return float("{0:.3f}".format(distance))
+
 
 def DistanceBetweenTwoGPSPoints(beginPoint, endPoint):
     coords_1 = (beginPoint[0], beginPoint[1])
@@ -72,28 +72,47 @@ def CalculateGIDSDif(SOCPoints):
     dif = float(cmpSOCPoint) - float(socPoint)
     return dif
 
-def CalculateElevation(elevationPoints):
+def CalculateElevation(gpsPoints, elevationPoints):
+    elevDistance = 0
+    i = 0
     elevation = 0
-    cmpPoint = elevationPoints[0]
-    for elevationPoint in elevationPoints:
-        if(cmpPoint <= elevationPoint):
-            elevation +=  float(elevationPoint) - float(cmpPoint)
-        cmpPoint = elevationPoint
-    return elevation
+    while i < len(elevationPoints)-1:
+        if(elevationPoints[i]  < elevationPoints[i+1]):
+            elevation += int(elevationPoints[i+1]) - int(elevationPoints[i])
+            elevDistance += DistanceBetweenTwoGPSPoints(gpsPoints[i],gpsPoints[i+1])
+        i+= 1
+    return (float("{0:.3f}".format(elevDistance)),elevation)
 
-def CalculateDescent(elevationPoints):
-    elevation = 0
-    cmpPoint = elevationPoints[0]
-    for elevationPoint in elevationPoints:
-        if(cmpPoint >= elevationPoint):
-            elevation += float(cmpPoint) - float(elevationPoint)
-        cmpPoint =  elevationPoint
-    return elevation
-
+def CalculateDescent(gpsPoints, elevationPoints):
+    descDistance = 0
+    i = 0
+    descent = 0
+    while i < len(elevationPoints)-1:
+        if(elevationPoints[i]  > elevationPoints[i+1]):
+            descent += int(elevationPoints[i]) - int(elevationPoints[i+1]) 
+            descDistance += DistanceBetweenTwoGPSPoints(gpsPoints[i],gpsPoints[i+1])
+        i+= 1
+    return (float("{0:.3f}".format(descDistance)),descent)
+    
+def CalculatePlane(gpsPoints, elevationPoints):
+    planedistance = 0
+    i = 0
+    while i < len(elevationPoints)-1:
+        if(elevationPoints[i]  == elevationPoints[i+1]):
+            planedistance += DistanceBetweenTwoGPSPoints(gpsPoints[i],gpsPoints[i+1])
+        i+= 1
+    return float("{0:.3f}".format(planedistance))
+        
 def CalculateDuration(timeStampList,s_format):
     s_StarTime      = timeStampList[0]
     s_EndTime       = timeStampList[-1]
-    t_startTime     = datetime.strptime(s_StarTime, s_format)
-    t_EndTime       = datetime.strptime(s_EndTime, s_format)
+    try :
+        timeFormat = '%m/%d/%Y %H:%M:%S'
+        datetime.strptime(s_StarTime, timeFormat)
+    except ValueError :
+        timeFormat = '%Y/%m/%d %H:%M:%S'
+    
+    t_startTime     = datetime.strptime(s_StarTime, timeFormat)
+    t_EndTime       = datetime.strptime(s_EndTime, timeFormat)
     return t_EndTime - t_startTime
     

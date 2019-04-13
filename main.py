@@ -7,11 +7,10 @@ from NissanLogsImp import *
 l_allRidesData = []
 
 #Ruta donde estan los archivos
-s_myPath = 'C:\\Users\\umanaedw\\Downloads\\Test\\'
+s_myPath = '.\\LogsDivididos\\'
 
 #Lista con el nombre de todos los archivos que estan en la carpeta myPath
 l_allFilesList = [f for f in listdir(s_myPath) if isfile(join(s_myPath, f))]
-
 #Agrega todos los rides a una lista
 #GetDataFromFile es un metodo que lee espesificamente el log de NissanSpy
 #Si se va a utilizar otro vendor se debe crear otro metodo
@@ -19,9 +18,11 @@ for rideFile in l_allFilesList:
     l_allRidesData.append(GetDataNissanSpyFile(s_myPath+rideFile))
 
 #Impreme la informacion obtenida
+    
+print("Archivo,SOC_INIT,SOC_END,DIF_SOC,POWER_CONSUMED,DISTANCIA,DURACION")
 for ride in l_allRidesData:
-    ride.PrintAVGData()
-    print('------------------')
+    ride.PrintCSV()
+    
    
 
  

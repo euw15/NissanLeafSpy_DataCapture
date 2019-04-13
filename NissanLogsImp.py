@@ -39,15 +39,15 @@ def GetDataNissanSpyFile(file):
             gpsPoint[0] = convertGPSToDecimal(gpsPoint[0])
             gpsPoint[1] = convertGPSToDecimal(gpsPoint[1])
 
-        elevation   = CalculateElevation(elevationPoints)
-        descent     = CalculateDescent(elevationPoints)
+        elevdistance,elevation = CalculateElevation(gpsPoints,elevationPoints)
+        descdistance, descent     = CalculateDescent(gpsPoints,elevationPoints)
+        planedistance = CalculatePlane(gpsPoints, elevationPoints)
         distance    = CalculateRideDistance(gpsPoints)
         socDif      = CalculateSOCDif(SOCPoints)
         gidDif      = CalculateGIDSDif(GIDSPoints)
         avgSpeed    = sum(list(map(float, speedPoints))) / float(len(speedPoints))
         duration    = CalculateDuration(timeStamp,'%m/%d/%Y %H:%M:%S')
 
-        
-        rideData    = RideData(timeStamp,gpsPoints,elevationPoints,SOCPoints,GIDSPoints,speedPoints,regenWhPoints, elevation,
-                               descent, avgSpeed, socDif, gidDif, distance, duration, file, SOH)
+        rideData    = RideData(timeStamp,gpsPoints,elevationPoints,SOCPoints,GIDSPoints,speedPoints,regenWhPoints, elevation, descent, avgSpeed ,socDif, gidDif, distance, duration,
+                               file, SOH, elevdistance , descdistance, planedistance)
         return rideData
